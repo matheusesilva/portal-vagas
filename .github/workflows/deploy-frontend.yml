@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - "frontend/**"
-      - ".github/workflows/deploy-frontend.yml"
 
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
+    environment: production
 
     steps:
       - name: Checkout code
@@ -19,8 +19,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
-          cache: "npm"
-          cache-dependency-path: frontend/package.json
 
       - name: Install frontend dependencies
         working-directory: ./frontend
@@ -30,8 +28,8 @@ jobs:
         working-directory: ./frontend
         run: npm run build
         env:
-          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-          REACT_APP_REGION: ${{ secrets.REACT_APP_REGION }}
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          REACT_APP_REGION: ${{ vars.REACT_APP_REGION }}
           REACT_APP_USER_POOL_ID: ${{ secrets.REACT_APP_USER_POOL_ID }}
           REACT_APP_USER_POOL_WEB_CLIENT_ID: ${{ secrets.REACT_APP_USER_POOL_WEB_CLIENT_ID }}
 
@@ -40,13 +38,12 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-east-1
+          aws-region: ${{ vars.AWS_REGION }}
 
       - name: Generate deployment package
         working-directory: ./frontend
         run: |
           cp package.json build/
-          cp package-lock.json build/ || true
           cd build
           zip -r ../frontend-deploy.zip .
 
@@ -55,12 +52,7 @@ jobs:
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          application_name: portal-vagas
-          environment_name: portal-vagas-prod
-          version_label: frontend-${{ github.sha }}
-          region: us-east-1
+          application_name: ${{ vars.EB_APPLICATION_NAME }}
+          environment_name: ${{ vars.EB_ENVIRONMENT_NAME }}
+          region: ${{ vars.AWS_REGION }}
           deployment_package: frontend/frontend-deploy.zip
-          wait_for_environment_recovery: 300
-
-      - name: Cleanup
-        run: rm -f frontend/frontend-deploy.zip
