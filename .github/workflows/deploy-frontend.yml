@@ -5,11 +5,11 @@ on:
     branches: [main]
     paths:
       - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
 
 jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
-    environment: production
 
     steps:
       - name: Checkout code
@@ -19,19 +19,35 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "18"
+          cache: "npm"
+          cache-dependency-path: frontend/package.json
 
       - name: Install frontend dependencies
         working-directory: ./frontend
-        run: npm install
+        run: |
+          echo "Instalando dependências em $(pwd)"
+          npm install
 
       - name: Build frontend
         working-directory: ./frontend
-        run: npm run build
+        run: |
+          echo "Executando build em $(pwd)"
+          npm run build
+          echo "Build completo! Verificando pasta build:"
+          ls -la build/
         env:
           REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
           REACT_APP_REGION: ${{ vars.REACT_APP_REGION }}
           REACT_APP_USER_POOL_ID: ${{ secrets.REACT_APP_USER_POOL_ID }}
           REACT_APP_USER_POOL_WEB_CLIENT_ID: ${{ secrets.REACT_APP_USER_POOL_WEB_CLIENT_ID }}
+
+      - name: Verify build files
+        working-directory: ./frontend
+        run: |
+          echo "Conteúdo da pasta build:"
+          ls -la build/
+          echo "Conteúdo de build/static:"
+          ls -la build/static/
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -43,9 +59,14 @@ jobs:
       - name: Generate deployment package
         working-directory: ./frontend
         run: |
+          echo "Criando pacote de deploy..."
+          # Copia package.json para o build
           cp package.json build/
           cd build
+          # Cria zip com conteúdo do build
           zip -r ../frontend-deploy.zip .
+          echo "Pacote criado. Tamanho:"
+          ls -lh ../frontend-deploy.zip
 
       - name: Deploy to Elastic Beanstalk
         uses: einaregilsson/beanstalk-deploy@v21
@@ -54,5 +75,10 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: ${{ vars.EB_APPLICATION_NAME }}
           environment_name: ${{ vars.EB_ENVIRONMENT_NAME }}
+          version_label: frontend-${{ github.sha }}
           region: ${{ vars.AWS_REGION }}
           deployment_package: frontend/frontend-deploy.zip
+          wait_for_environment_recovery: 300
+
+      - name: Cleanup
+        run: rm -f frontend/frontend-deploy.zip
