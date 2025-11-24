@@ -1,0 +1,66 @@
+name: Deploy Frontend to Elastic Beanstalk
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: frontend/package.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+          REACT_APP_REGION: ${{ secrets.REACT_APP_REGION }}
+          REACT_APP_USER_POOL_ID: ${{ secrets.REACT_APP_USER_POOL_ID }}
+          REACT_APP_USER_POOL_WEB_CLIENT_ID: ${{ secrets.REACT_APP_USER_POOL_WEB_CLIENT_ID }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Generate deployment package
+        working-directory: ./frontend
+        run: |
+          cp package.json build/
+          cp package-lock.json build/ || true
+          cd build
+          zip -r ../frontend-deploy.zip .
+
+      - name: Deploy to Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: portal-vagas
+          environment_name: portal-vagas-prod
+          version_label: frontend-${{ github.sha }}
+          region: us-east-1
+          deployment_package: frontend/frontend-deploy.zip
+          wait_for_environment_recovery: 300
+
+      - name: Cleanup
+        run: rm -f frontend/frontend-deploy.zip

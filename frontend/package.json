@@ -1,0 +1,7 @@
+{
+  "name": "portal-vagas",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx serve -s build -l 8080"
+  }
+}
