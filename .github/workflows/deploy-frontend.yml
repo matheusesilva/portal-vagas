@@ -60,9 +60,17 @@ jobs:
         working-directory: ./frontend
         run: |
           echo "Criando pacote de deploy..."
-          # Copia package.json para o build
-          cp package.json build/
           cd build
+          # Package.json ESPECÍFICO para Beanstalk
+          cat > package.json << 'EOF'
+          {
+            "name": "portal-vagas-frontend",
+            "version": "1.0.0",
+            "scripts": {
+              "start": "npx serve -s . -l 8080"
+            }
+          }
+          EOF
           # Cria zip com conteúdo do build
           zip -r ../frontend-deploy.zip .
           echo "Pacote criado. Tamanho:"
