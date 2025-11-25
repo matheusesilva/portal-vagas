@@ -8,6 +8,7 @@ const UserPreferences = () => {
     keywords: [],
     portals: [],
   });
+  const [keywordsInput, setKeywordsInput] = useState(""); // ← NOVO ESTADO
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -19,6 +20,7 @@ const UserPreferences = () => {
     { id: "infojobs", name: "InfoJobs" },
   ];
 
+  // Carrega preferências ao montar o componente
   useEffect(() => {
     loadPreferences();
   }, []);
@@ -28,6 +30,7 @@ const UserPreferences = () => {
       const user = await Auth.currentAuthenticatedUser();
       const userId = user.attributes.sub;
 
+      console.log("📥 Carregando preferências para:", userId);
       const data = await apiService.getPreferences(userId);
 
       if (data.preferences) {
@@ -35,22 +38,17 @@ const UserPreferences = () => {
           keywords: data.preferences.keywords || [],
           portals: data.preferences.portals || [],
         });
+        // Atualiza o input também
+        setKeywordsInput(data.preferences.keywords.join(", "));
       }
     } catch (error) {
-      console.error("Erro ao carregar preferências:", error);
+      console.error("❌ Erro ao carregar preferências:", error);
     }
   };
 
-  const handleKeywordsChange = (e) => {
-    const keywordsArray = e.target.value
-      .split(",")
-      .map((keyword) => keyword.trim())
-      .filter((keyword) => keyword.length > 0);
-
-    setPreferences((prev) => ({
-      ...prev,
-      keywords: keywordsArray,
-    }));
+  const handleKeywordsInputChange = (e) => {
+    // Apenas atualiza o input, não processa ainda
+    setKeywordsInput(e.target.value);
   };
 
   const handlePortalChange = (portalId, isChecked) => {
@@ -69,13 +67,32 @@ const UserPreferences = () => {
     setMessage("");
 
     try {
+      // Processa as keywords apenas no submit
+      const keywordsArray = keywordsInput
+        .split(",")
+        .map((keyword) => keyword.trim())
+        .filter((keyword) => keyword.length > 0);
+
       const user = await Auth.currentAuthenticatedUser();
       const userId = user.attributes.sub;
 
-      await apiService.savePreferences(userId, preferences);
-      setMessage("Preferências salvas com sucesso!");
+      const preferencesToSave = {
+        keywords: keywordsArray,
+        portals: preferences.portals,
+      };
+
+      console.log("📤 Salvando preferências:", {
+        userId,
+        preferences: preferencesToSave,
+      });
+      await apiService.savePreferences(userId, preferencesToSave);
+      setMessage("✅ Preferências salvas com sucesso!");
+
+      // Atualiza o estado das preferences
+      setPreferences(preferencesToSave);
     } catch (error) {
-      setMessage("Erro ao salvar preferências: " + error.message);
+      console.error("❌ Erro ao salvar preferências:", error);
+      setMessage("❌ Erro ao salvar preferências: " + error.message);
     } finally {
       setLoading(false);
     }
@@ -91,8 +108,8 @@ const UserPreferences = () => {
           <input
             type="text"
             placeholder="javascript, react, node.js, python"
-            value={preferences.keywords.join(", ")}
-            onChange={handleKeywordsChange}
+            value={keywordsInput}
+            onChange={handleKeywordsInputChange}
           />
           <small>
             Digite as tecnologias, cargos ou habilidades que procura
@@ -119,14 +136,14 @@ const UserPreferences = () => {
 
         {message && (
           <div
-            className={`message ${message.includes("sucesso") ? "success" : "error"}`}
+            className={`message ${message.includes("✅") ? "success" : "error"}`}
           >
             {message}
           </div>
         )}
 
         <button type="submit" className="save-btn" disabled={loading}>
-          {loading ? "Salvando..." : "Salvar Preferências"}
+          {loading ? "💾 Salvando..." : "💾 Salvar Preferências"}
         </button>
       </form>
     </div>
