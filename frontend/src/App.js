@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { Auth } from "aws-amplify";
 import CustomLogin from "./components/CustomLogin.jsx";
+import UserPreferences from "./components/UserPreferences.jsx";
 import "./App.css";
 
 function App() {
@@ -70,34 +71,7 @@ function App() {
           </p>
         </div>
 
-        <div className="preferences-section">
-          <h3>Suas Preferências de Vagas</h3>
-          <form className="preferences-form">
-            <div className="form-group">
-              <label>Palavras-chave (separadas por vírgula)</label>
-              <input type="text" placeholder="javascript, react, node.js" />
-            </div>
-
-            <div className="form-group">
-              <label>Portais de busca</label>
-              <div className="checkboxes">
-                <label>
-                  <input type="checkbox" /> LinkedIn
-                </label>
-                <label>
-                  <input type="checkbox" /> Indeed
-                </label>
-                <label>
-                  <input type="checkbox" /> Glassdoor
-                </label>
-              </div>
-            </div>
-
-            <button type="submit" className="save-btn">
-              Salvar Preferências
-            </button>
-          </form>
-        </div>
+        <UserPreferences />
       </main>
     </div>
   );
