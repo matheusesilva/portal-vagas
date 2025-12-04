@@ -2,7 +2,9 @@
 
 Este projeto implementa uma arquitetura serverless para identificar e estruturar vagas de emprego publicadas no LinkedIn. O pipeline utiliza AWS Lambda, DynamoDB, SQS, API Groq e um portal web hospedado no Elastic Beanstalk. O objetivo é automatizar a coleta diária de posts, identificar possíveis vagas com base em palavras-chave definidas pelo usuário e disponibilizar informações estruturadas em um painel acessível.
 
----
+## Live view
+
+http://portal-jobs-env-1.eba-yestrddp.us-east-1.elasticbeanstalk.com/
 
 ## Arquitetura Geral
 
