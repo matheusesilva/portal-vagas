@@ -6,6 +6,10 @@ Este projeto implementa uma arquitetura serverless para identificar e estruturar
 
 http://portal-jobs-env-1.eba-yestrddp.us-east-1.elasticbeanstalk.com/
 
+**Usuário e senha demo:**
+- demo@demo.com
+- Demo-1234
+
 ## Arquitetura Geral
 
 1. **Scraper de LinkedIn (Lambda + Playwright em Docker/ECR)**  
