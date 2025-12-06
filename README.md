@@ -1,6 +1,6 @@
-# LinkedIn Job Scraper – Serverless Pipeline
+# Job Scraper – Serverless Pipeline
 
-Este projeto implementa uma arquitetura serverless para identificar e estruturar vagas de emprego publicadas no LinkedIn. O pipeline utiliza AWS Lambda, DynamoDB, SQS, API Groq e um portal web hospedado no Elastic Beanstalk. O objetivo é automatizar a coleta diária de posts, identificar possíveis vagas com base em palavras-chave definidas pelo usuário e disponibilizar informações estruturadas em um painel acessível.
+Este projeto implementa uma arquitetura serverless para identificar e estruturar vagas de emprego publicadas em portais de vagas. O pipeline utiliza AWS Lambda, DynamoDB, SQS, API Groq e um portal web hospedado no Elastic Beanstalk. O objetivo é automatizar a coleta diária de posts, identificar possíveis vagas com base em palavras-chave definidas pelo usuário e disponibilizar informações estruturadas em um painel acessível.
 
 ## Live view
 
@@ -14,15 +14,14 @@ http://portal-jobs-env-1.eba-yestrddp.us-east-1.elasticbeanstalk.com/
 
 1. **Scraper de LinkedIn (Lambda + Playwright em Docker/ECR)**  
    - Executado 1x por dia.  
-   - Acessa o LinkedIn, coleta posts recentes e extrai conteúdo bruto.  
-   - Classifica cada post como provável vaga usando análise básica por palavras-chave.  
-   - Envia posts suspeitos para uma fila SQS.  
+   - Acessa o portal de vagas, coleta posts recentes e extrai conteúdo bruto. 
+   - Envia posts para uma fila SQS.  
    - Empacotado como container Docker hospedado no Amazon ECR.
 
 2. **Lambda de Enriquecimento com IA (Groq API)**  
    - Consome mensagens da fila no SQS.  
    - Envia o conteúdo para a API Groq, que extrai dados estruturados da vaga.  
-   - Caso o conteúdo seja realmente uma vaga, os dados são enviados para outra lista SQS.
+   - Os dados são enviados para outra lista SQS.
 
 3. **Lambda de Persistência**  
    - Consome da lista com os dados extraídos pela IA.  
