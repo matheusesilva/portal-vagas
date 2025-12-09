@@ -1,4 +1,4 @@
-# Job Scraper – Serverless Pipeline
+# Agregador de Vagas de Emprego
 
 Este projeto implementa uma arquitetura serverless para identificar e estruturar vagas de emprego publicadas em portais de vagas. O pipeline utiliza AWS Lambda, DynamoDB, SQS, API Groq e um portal web hospedado no Elastic Beanstalk. O objetivo é automatizar a coleta diária de posts, identificar possíveis vagas com base em palavras-chave definidas pelo usuário e disponibilizar informações estruturadas em um painel acessível.
 
